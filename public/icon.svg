@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <rect width="512" height="512" rx="128" fill="#0f172a"/>
+  <circle cx="256" cy="256" r="200" fill="#1e293b" stroke="#10b981" stroke-width="12"/>
+  <!-- Snake Cobra hood shape & bowl -->
+  <path d="M256 120 C 190 120 160 170 160 220 C 160 270 200 290 230 310 C 250 325 256 345 256 370 C 256 395 240 410 210 410" stroke="#10b981" stroke-width="24" stroke-linecap="round" fill="none"/>
+  <!-- Cobra Eyes -->
+  <circle cx="230" cy="180" r="10" fill="#f59e0b"/>
+  <circle cx="282" cy="180" r="10" fill="#f59e0b"/>
+  <!-- Cobra Crown / Warung Wok flame -->
+  <path d="M256 80 L266 110 L246 110 Z" fill="#f59e0b"/>
+  <!-- Steaming bowl accent -->
+  <path d="M290 350 Q340 350 350 380 Q350 410 290 410 Z" fill="#10b981" opacity="0.8"/>
+  <path d="M310 320 Q315 300 325 330" stroke="#f59e0b" stroke-width="6" stroke-linecap="round"/>
+  <path d="M330 320 Q335 300 345 330" stroke="#f59e0b" stroke-width="6" stroke-linecap="round"/>
+</svg>

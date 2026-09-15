@@ -1,0 +1,64 @@
+{
+  "entities": {
+    "Product": {
+      "title": "Product",
+      "description": "Menu product item",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "category": { "type": "string" },
+        "price": { "type": "number" },
+        "costPrice": { "type": "number" },
+        "stock": { "type": "number" },
+        "unit": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "description": { "type": "string" },
+        "isAvailable": { "type": "boolean" },
+        "barcode": { "type": "string" }
+      },
+      "required": ["id", "name", "category", "price", "stock", "unit", "isAvailable"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Order transaction",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "orderNumber": { "type": "string" },
+        "orderType": { "type": "string" },
+        "status": { "type": "string" },
+        "tableNumber": { "type": "string" },
+        "totalAmount": { "type": "number" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "orderNumber", "orderType", "status", "totalAmount", "createdAt"]
+    },
+    "StoreSettings": {
+      "title": "StoreSettings",
+      "description": "Store configuration and preferences",
+      "type": "object",
+      "properties": {
+        "storeName": { "type": "string" },
+        "storeTagline": { "type": "string" },
+        "storeAddress": { "type": "string" },
+        "storePhone": { "type": "string" }
+      },
+      "required": ["storeName"]
+    }
+  },
+  "firestore": {
+    "/products/{productId}": {
+      "schema": "Product",
+      "description": "Collection of menu items and products"
+    },
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Collection of orders and transactions"
+    },
+    "/settings/store": {
+      "schema": "StoreSettings",
+      "description": "Global store configuration"
+    }
+  }
+}

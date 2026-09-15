@@ -1,0 +1,8 @@
+{
+  "name": "Warung Bang Kobra - POS \u0026 QR Order2",
+  "description": "Sistem POS Kasir Modern \u0026 Pemesanan Mandiri Pelanggan via QR Code Warung Bang Kobra",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

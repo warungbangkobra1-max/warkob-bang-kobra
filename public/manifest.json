@@ -1,0 +1,19 @@
+{
+  "id": "/",
+  "name": "Warung Bang Kobra - POS & QR Order",
+  "short_name": "Bang Kobra",
+  "description": "Sistem POS Kasir Modern & Pemesanan Mandiri Pelanggan via QR Code",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#10b981",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

@@ -10,6 +10,18 @@ const PORT = 3000;
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
+// Global CORS & preflight options
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(204);
+    return;
+  }
+  next();
+});
+
 // In-Memory Database for Warung Bang Kobra
 interface ProductEntity {
   id: string;
@@ -479,6 +491,17 @@ initDatabase();
 // Server-Sent Events (SSE) connections for Realtime Updates
 const sseClients: Response[] = [];
 
+// SSE Keepalive heartbeat every 15 seconds to prevent reverse-proxy timeouts
+setInterval(() => {
+  for (let i = sseClients.length - 1; i >= 0; i--) {
+    try {
+      sseClients[i].write(': keepalive\n\n');
+    } catch {
+      sseClients.splice(i, 1);
+    }
+  }
+}, 15000);
+
 function broadcastSSE(event: string, data: any) {
   const payload = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
   for (let i = sseClients.length - 1; i >= 0; i--) {
@@ -517,8 +540,9 @@ function isStoreOpenNow(): boolean {
 // SSE Endpoint for Live Updates to Kasir, Kitchen, and Customers
 app.get('/api/events', (req: Request, res: Response) => {
   res.setHeader('Content-Type', 'text/event-stream');
-  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Cache-Control', 'no-cache, no-transform');
   res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no');
   res.flushHeaders();
 
   // Send initial ping
@@ -731,8 +755,16 @@ app.get('/api/orders', (req: Request, res: Response) => {
 });
 
 // Customer Tracking by Token (Public, secure token)
+app.get('/api/order-status', (req: Request, res: Response) => {
+  res.status(400).json({ error: 'Token pesanan wajib disertakan' });
+});
+
 app.get('/api/order-status/:token', (req: Request, res: Response) => {
-  const { token } = req.params;
+  const token = req.params.token?.trim();
+  if (!token) {
+    res.status(400).json({ error: 'Token pesanan wajib disertakan' });
+    return;
+  }
   const order = orders.find((o) => o.customerToken === token || o.orderNumber === token);
   if (!order) {
     res.status(404).json({ error: 'Pesanan tidak ditemukan atau token tidak valid' });
@@ -1085,6 +1117,14 @@ app.get('/api/database/download', (req: Request, res: Response) => {
   } else {
     res.status(404).json({ error: 'Berkas database belum tersedia' });
   }
+});
+
+// Explicit 404 for unmatched /api routes to prevent Vite SPA HTML fallback from returning HTML to API callers
+app.all('/api/*', (req: Request, res: Response) => {
+  res.status(404).json({ error: `API endpoint ${req.method} ${req.path} tidak ditemukan` });
+});
+app.all('/api', (req: Request, res: Response) => {
+  res.status(404).json({ error: 'API route tidak ditemukan' });
 });
 
 // Start Server with Vite Middleware in Development

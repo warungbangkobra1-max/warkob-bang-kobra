@@ -58,12 +58,14 @@ export const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({
 
     const checkStatus = async () => {
       try {
-        const latest = await fetchOrderStatus(order.customerToken || order.orderNumber);
-        if (active) {
+        const token = order?.customerToken || order?.orderNumber;
+        if (!token || !token.trim()) return;
+        const latest = await fetchOrderStatus(token.trim());
+        if (active && latest) {
           setOrder(latest);
         }
       } catch (err) {
-        console.error(err);
+        // silent polling catch
       }
     };
 

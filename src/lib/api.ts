@@ -2,10 +2,28 @@ import { Product, QRCodeData, Order, StoreSettings, SalesReport, OrderStatus, Pa
 
 const BASE_URL = '/api';
 
+/**
+ * Safe response handler that ensures responses are JSON before parsing,
+ * preventing 'Unexpected token <' HTML parse crashes when encountering 404/500 proxy responses.
+ */
+async function handleResponse<T>(res: Response, fallbackErrMsg: string): Promise<T> {
+  const contentType = res.headers.get('content-type') || '';
+  if (!contentType.includes('application/json')) {
+    if (!res.ok) {
+      throw new Error(`${fallbackErrMsg} (${res.status} ${res.statusText})`);
+    }
+    throw new Error('Respons server tidak valid (bukan JSON)');
+  }
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.error || data.message || fallbackErrMsg);
+  }
+  return data;
+}
+
 export async function fetchSettings(): Promise<StoreSettings & { isOpen: boolean }> {
   const res = await fetch(`${BASE_URL}/settings`);
-  if (!res.ok) throw new Error('Gagal memuat pengaturan toko');
-  return res.json();
+  return handleResponse<StoreSettings & { isOpen: boolean }>(res, 'Gagal memuat pengaturan toko');
 }
 
 export async function updateSettings(settings: Partial<StoreSettings>): Promise<{ success: boolean; settings: StoreSettings }> {
@@ -14,14 +32,12 @@ export async function updateSettings(settings: Partial<StoreSettings>): Promise<
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(settings)
   });
-  if (!res.ok) throw new Error('Gagal memperbarui pengaturan');
-  return res.json();
+  return handleResponse<{ success: boolean; settings: StoreSettings }>(res, 'Gagal memperbarui pengaturan');
 }
 
 export async function fetchProfile(): Promise<UserProfile> {
   const res = await fetch(`${BASE_URL}/profile`);
-  if (!res.ok) throw new Error('Gagal memuat profil');
-  return res.json();
+  return handleResponse<UserProfile>(res, 'Gagal memuat profil');
 }
 
 export async function updateProfile(profile: Partial<UserProfile>): Promise<{ success: boolean; profile: UserProfile }> {
@@ -30,14 +46,12 @@ export async function updateProfile(profile: Partial<UserProfile>): Promise<{ su
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(profile)
   });
-  if (!res.ok) throw new Error('Gagal memperbarui profil');
-  return res.json();
+  return handleResponse<{ success: boolean; profile: UserProfile }>(res, 'Gagal memperbarui profil');
 }
 
 export async function exportBackupData(): Promise<any> {
   const res = await fetch(`${BASE_URL}/backup/export`);
-  if (!res.ok) throw new Error('Gagal mengekspor data cadangan');
-  return res.json();
+  return handleResponse<any>(res, 'Gagal mengekspor data cadangan');
 }
 
 export async function restoreBackupData(backupData: any): Promise<{ success: boolean; message: string }> {
@@ -46,11 +60,7 @@ export async function restoreBackupData(backupData: any): Promise<{ success: boo
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(backupData)
   });
-  if (!res.ok) {
-    const data = await res.json().catch(() => ({}));
-    throw new Error(data.error || 'Gagal memulihkan data');
-  }
-  return res.json();
+  return handleResponse<{ success: boolean; message: string }>(res, 'Gagal memulihkan data');
 }
 
 export interface DatabaseStatus {
@@ -67,20 +77,17 @@ export interface DatabaseStatus {
 
 export async function fetchDatabaseStatus(): Promise<DatabaseStatus> {
   const res = await fetch(`${BASE_URL}/database/status`);
-  if (!res.ok) throw new Error('Gagal memeriksa status database');
-  return res.json();
+  return handleResponse<DatabaseStatus>(res, 'Gagal memeriksa status database');
 }
 
 export async function syncDatabase(): Promise<{ success: boolean; message: string }> {
   const res = await fetch(`${BASE_URL}/database/sync`, { method: 'POST' });
-  if (!res.ok) throw new Error('Gagal menyinkronkan database');
-  return res.json();
+  return handleResponse<{ success: boolean; message: string }>(res, 'Gagal menyinkronkan database');
 }
 
 export async function fetchProducts(): Promise<Product[]> {
   const res = await fetch(`${BASE_URL}/products`);
-  if (!res.ok) throw new Error('Gagal memuat data produk');
-  return res.json();
+  return handleResponse<Product[]>(res, 'Gagal memuat data produk');
 }
 
 export async function createProduct(product: Partial<Product>): Promise<Product> {
@@ -89,11 +96,7 @@ export async function createProduct(product: Partial<Product>): Promise<Product>
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(product)
   });
-  if (!res.ok) {
-    const data = await res.json().catch(() => ({}));
-    throw new Error(data.error || 'Gagal menambahkan produk');
-  }
-  return res.json();
+  return handleResponse<Product>(res, 'Gagal menambahkan produk');
 }
 
 export async function updateProduct(id: string, product: Partial<Product>): Promise<Product> {
@@ -102,34 +105,27 @@ export async function updateProduct(id: string, product: Partial<Product>): Prom
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(product)
   });
-  if (!res.ok) {
-    const data = await res.json().catch(() => ({}));
-    throw new Error(data.error || 'Gagal mengupdate produk');
-  }
-  return res.json();
+  return handleResponse<Product>(res, 'Gagal mengupdate produk');
 }
 
 export async function deleteProduct(id: string): Promise<{ success: boolean }> {
   const res = await fetch(`${BASE_URL}/products/${id}`, {
     method: 'DELETE'
   });
-  if (!res.ok) throw new Error('Gagal menghapus produk');
-  return res.json();
+  return handleResponse<{ success: boolean }>(res, 'Gagal menghapus produk');
 }
 
 export async function fetchQRCodes(): Promise<QRCodeData[]> {
   const res = await fetch(`${BASE_URL}/qr-codes`);
-  if (!res.ok) throw new Error('Gagal memuat data QR Code');
-  return res.json();
+  return handleResponse<QRCodeData[]>(res, 'Gagal memuat data QR Code');
 }
 
 export async function fetchQRCodeByCode(code: string): Promise<QRCodeData> {
-  const res = await fetch(`${BASE_URL}/qr-codes/${encodeURIComponent(code)}`);
-  if (!res.ok) {
-    const data = await res.json().catch(() => ({}));
-    throw new Error(data.error || 'QR Code tidak ditemukan');
+  if (!code || !code.trim()) {
+    throw new Error('Kode QR tidak boleh kosong');
   }
-  return res.json();
+  const res = await fetch(`${BASE_URL}/qr-codes/${encodeURIComponent(code.trim())}`);
+  return handleResponse<QRCodeData>(res, 'QR Code tidak ditemukan');
 }
 
 export async function createQRCode(data: Partial<QRCodeData>): Promise<QRCodeData> {
@@ -138,11 +134,7 @@ export async function createQRCode(data: Partial<QRCodeData>): Promise<QRCodeDat
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
   });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || 'Gagal membuat QR Code');
-  }
-  return res.json();
+  return handleResponse<QRCodeData>(res, 'Gagal membuat QR Code');
 }
 
 export async function updateQRCode(id: string, data: Partial<QRCodeData>): Promise<QRCodeData> {
@@ -151,16 +143,14 @@ export async function updateQRCode(id: string, data: Partial<QRCodeData>): Promi
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
   });
-  if (!res.ok) throw new Error('Gagal memperbarui QR Code');
-  return res.json();
+  return handleResponse<QRCodeData>(res, 'Gagal memperbarui QR Code');
 }
 
 export async function deleteQRCode(id: string): Promise<{ success: boolean }> {
   const res = await fetch(`${BASE_URL}/qr-codes/${id}`, {
     method: 'DELETE'
   });
-  if (!res.ok) throw new Error('Gagal menghapus QR Code');
-  return res.json();
+  return handleResponse<{ success: boolean }>(res, 'Gagal menghapus QR Code');
 }
 
 export async function fetchOrders(params?: { status?: string; type?: string }): Promise<Order[]> {
@@ -168,17 +158,15 @@ export async function fetchOrders(params?: { status?: string; type?: string }): 
   if (params?.status) query.set('status', params.status);
   if (params?.type) query.set('type', params.type);
   const res = await fetch(`${BASE_URL}/orders?${query.toString()}`);
-  if (!res.ok) throw new Error('Gagal memuat pesanan');
-  return res.json();
+  return handleResponse<Order[]>(res, 'Gagal memuat pesanan');
 }
 
 export async function fetchOrderStatus(token: string): Promise<Order> {
-  const res = await fetch(`${BASE_URL}/order-status/${encodeURIComponent(token)}`);
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || 'Pesanan tidak ditemukan');
+  if (!token || !token.trim()) {
+    throw new Error('Token pesanan wajib diisi');
   }
-  return res.json();
+  const res = await fetch(`${BASE_URL}/order-status/${encodeURIComponent(token.trim())}`);
+  return handleResponse<Order>(res, 'Pesanan tidak ditemukan');
 }
 
 export interface CreateOrderPayload {
@@ -205,10 +193,14 @@ export async function submitOrder(payload: CreateOrderPayload): Promise<Order> {
     body: JSON.stringify(payload)
   });
 
-  const data = await res.json().catch(() => ({}));
+  const contentType = res.headers.get('content-type') || '';
+  let data: any = {};
+  if (contentType.includes('application/json')) {
+    data = await res.json().catch(() => ({}));
+  }
 
   if (!res.ok) {
-    const errorMsg = data.error || data.message || 'Gagal mengirim pesanan';
+    const errorMsg = data.error || data.message || `Gagal mengirim pesanan (${res.status})`;
     const err = new Error(errorMsg) as Error & { outOfStockProductId?: string; code?: number };
     err.outOfStockProductId = data.outOfStockProductId;
     err.code = res.status;
@@ -228,8 +220,7 @@ export async function updateOrderStatus(
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ status, autoMarkPaid })
   });
-  if (!res.ok) throw new Error('Gagal mengupdate status pesanan');
-  return res.json();
+  return handleResponse<Order>(res, 'Gagal mengupdate status pesanan');
 }
 
 export async function processPayment(
@@ -241,17 +232,12 @@ export async function processPayment(
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
   });
-  if (!res.ok) {
-    const data = await res.json().catch(() => ({}));
-    throw new Error(data.error || 'Gagal memproses pembayaran');
-  }
-  return res.json();
+  return handleResponse<Order>(res, 'Gagal memproses pembayaran');
 }
 
 export async function fetchReports(): Promise<SalesReport> {
   const res = await fetch(`${BASE_URL}/reports`);
-  if (!res.ok) throw new Error('Gagal memuat laporan');
-  return res.json();
+  return handleResponse<SalesReport>(res, 'Gagal memuat laporan');
 }
 
 export async function fetchDashboardSummary(): Promise<DashboardSummary> {
@@ -279,6 +265,10 @@ export function subscribeToEvents(handlers: {
   }
 
   const es = new EventSource(`${BASE_URL}/events`);
+
+  es.onerror = () => {
+    // EventSource will automatically attempt reconnection; suppress unhandled logging
+  };
 
   es.addEventListener('new_order', (e) => {
     try {

@@ -28,11 +28,10 @@ export async function testFirestoreConnection(): Promise<{ success: boolean; mes
     await getDocFromServer(doc(db, 'system', 'connection_health'));
     return { success: true, message: 'Terhubung ke Firebase Firestore' };
   } catch (error: any) {
-    if (error?.code === 'unavailable' || error?.message?.includes('offline')) {
-      console.warn('[Firebase] Firestore client offline:', error.message);
-      return { success: false, message: 'Firestore offline' };
+    if (error?.code === 'not-found') {
+      return { success: true, message: 'Terhubung ke Firebase Firestore' };
     }
-    return { success: true, message: 'Terhubung ke Firebase Firestore' };
+    return { success: false, message: error?.message || 'Firestore offline' };
   }
 }
 
@@ -84,9 +83,11 @@ export async function syncAllDataToFirestore(
 }
 
 // Initial connection test
-testFirestoreConnection().then((res) => {
-  if (res.success) {
-    console.log('[Firebase] ✅', res.message, firestoreInfo.projectId);
-  }
-});
+testFirestoreConnection()
+  .then((res) => {
+    if (res.success) {
+      console.log('[Firebase] ✅', res.message, firestoreInfo.projectId);
+    }
+  })
+  .catch(() => {});
 

@@ -1,39 +1,11 @@
 <!doctype html>
 <html lang="id">
   <head>
-    <script>
-      (function() {
-        try {
-          var origFetch = window.fetch;
-          var customFetch = origFetch;
-          Object.defineProperty(window, 'fetch', {
-            get: function() {
-              return customFetch;
-            },
-            set: function(newFetch) {
-              customFetch = newFetch;
-            },
-            configurable: true,
-            enumerable: true
-          });
-        } catch (e) {
-          try {
-            var fallbackFetch = window.fetch;
-            Object.defineProperty(window, 'fetch', {
-              value: fallbackFetch,
-              writable: true,
-              configurable: true,
-              enumerable: true
-            });
-          } catch (err) {}
-        }
-      })();
-    </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Warung Bang Kobra - POS & QR Order</title>
+    <title>Warung Bang Kobra - POS & QR Order2</title>
     <meta name="description" content="Sistem POS Kasir Modern & Pemesanan Mandiri Pelanggan via QR Code Warung Bang Kobra" />
-    <meta property="og:title" content="Warung Bang Kobra - POS & QR Order" />
+    <meta property="og:title" content="Warung Bang Kobra - POS & QR Order2" />
     <meta property="og:description" content="Sistem POS Kasir Modern & Pemesanan Mandiri Pelanggan via QR Code Warung Bang Kobra" />
     <meta property="og:type" content="website" />
     <meta name="theme-color" content="#10b981" />
